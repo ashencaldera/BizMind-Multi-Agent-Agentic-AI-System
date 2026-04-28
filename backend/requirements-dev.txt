@@ -1,0 +1,7 @@
+# Development dependencies (install in addition to requirements.txt)
+pytest==8.2.0
+pytest-asyncio==0.23.6
+httpx==0.27.0          # for FastAPI TestClient
+black==24.4.2          # code formatter
+ruff==0.4.4            # linter
+mypy==1.10.0           # type checker

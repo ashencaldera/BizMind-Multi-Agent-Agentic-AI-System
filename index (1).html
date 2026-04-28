@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BizMind — Business Intelligence AI</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0d14;
+    --bg2: #111520;
+    --bg3: #181d2c;
+    --bg4: #1e2436;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f2f8;
+    --text2: #8b92a8;
+    --text3: #555e78;
+    --accent: #4f7fff;
+    --accent2: #6c8fff;
+    --green: #22c98b;
+    --red: #ff5c6a;
+    --amber: #ffb340;
+    --purple: #a78bfa;
+    --teal: #2dd4bf;
+    --font: 'DM Sans', sans-serif;
+    --font2: 'Space Grotesk', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
+  #root { display: flex; height: 100vh; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 220px; min-width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+  .logo-mark { font-family: var(--font2); font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+  .logo-mark span { color: var(--accent); }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+  .nav-section { font-size: 10px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; padding: 0 8px 8px; margin-top: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 400; transition: all 0.15s; margin-bottom: 2px; }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: rgba(79,127,255,0.12); color: var(--accent2); font-weight: 500; }
+  .nav-item .icon { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; font-size: 10px; background: var(--red); color: white; padding: 1px 6px; border-radius: 10px; font-weight: 500; }
+  .sidebar-bottom { padding: 16px; border-top: 1px solid var(--border); }
+  .health-pill { background: var(--bg3); border-radius: 10px; padding: 12px 14px; }
+  .health-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .health-bar-wrap { background: var(--bg4); border-radius: 4px; height: 5px; overflow: hidden; }
+  .health-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+  .health-score { font-size: 18px; font-weight: 600; font-family: var(--font2); margin-bottom: 4px; }
+
+  /* Main content */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .page-title { font-size: 15px; font-weight: 500; font-family: var(--font2); color: var(--text); }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn { padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); transition: all 0.15s; font-family: var(--font); }
+  .btn:hover { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+  .btn.primary { background: var(--accent); color: white; border-color: transparent; }
+  .btn.primary:hover { background: var(--accent2); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.amber { background: var(--amber); }
+  .status-dot.red { background: var(--red); }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .card-sm { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .card-title { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+  .card-value { font-size: 26px; font-weight: 600; font-family: var(--font2); color: var(--text); letter-spacing: -0.5px; }
+  .card-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+  .card-change { font-size: 12px; font-weight: 500; }
+  .card-change.up { color: var(--green); }
+  .card-change.down { color: var(--red); }
+
+  /* Grid */
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .gap-14 { display: flex; flex-direction: column; gap: 14px; }
+
+  /* Section header */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; margin-top: 24px; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--text2); }
+  .section-title:first-child { margin-top: 0; }
+
+  /* Agent status cards */
+  .agent-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: border-color 0.2s; }
+  .agent-card:hover { border-color: var(--border2); }
+  .agent-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .agent-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .agent-role { font-size: 11px; color: var(--text3); }
+  .agent-status-badge { margin-left: auto; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 6px; }
+  .badge-success { background: rgba(34,201,139,0.12); color: var(--green); }
+  .badge-warning { background: rgba(255,179,64,0.12); color: var(--amber); }
+  .badge-critical { background: rgba(255,92,106,0.12); color: var(--red); }
+  .badge-idle { background: rgba(139,146,168,0.1); color: var(--text3); }
+  .badge-running { background: rgba(79,127,255,0.12); color: var(--accent2); }
+
+  /* Loading */
+  .loader { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; }
+  .spinner { width: 36px; height: 36px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text { color: var(--text3); font-size: 13px; }
+  .loader-stage { color: var(--accent2); font-size: 12px; }
+
+  /* Insight items */
+  .insight-item { padding: 10px 12px; background: var(--bg3); border-radius: 8px; font-size: 12px; color: var(--text2); line-height: 1.5; border-left: 2px solid var(--border2); margin-bottom: 6px; }
+  .insight-item.risk { border-left-color: var(--red); }
+  .insight-item.opportunity { border-left-color: var(--green); }
+  .insight-item.insight { border-left-color: var(--accent); }
+
+  /* Action items */
+  .action-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .action-header { display: flex; align-items: flex-start; gap: 10px; }
+  .action-id { font-size: 10px; color: var(--text3); font-family: var(--font2); background: var(--bg3); padding: 2px 6px; border-radius: 4px; }
+  .action-text { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+  .priority-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 5px; text-transform: uppercase; }
+  .p-critical { background: rgba(255,92,106,0.15); color: var(--red); }
+  .p-high { background: rgba(255,179,64,0.12); color: var(--amber); }
+  .p-medium { background: rgba(79,127,255,0.12); color: var(--accent2); }
+  .p-low { background: rgba(139,146,168,0.1); color: var(--text3); }
+  .action-details { font-size: 12px; color: var(--text3); margin-top: 8px; line-height: 1.5; }
+  .action-meta { display: flex; gap: 16px; margin-top: 8px; }
+  .action-meta-item { font-size: 11px; color: var(--text3); }
+  .action-meta-item span { color: var(--text2); }
+
+  /* Chart container */
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* Ask AI */
+  .ask-ai-input { width: 100%; background: var(--bg3); border: 1px solid var(--border2); color: var(--text); font-family: var(--font); font-size: 13px; border-radius: 10px; padding: 12px 14px; outline: none; resize: none; transition: border-color 0.15s; }
+  .ask-ai-input:focus { border-color: var(--accent); }
+  .answer-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-top: 14px; }
+  .answer-label { font-size: 10px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .answer-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .answer-rec { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text2); }
+
+  /* Report */
+  .report-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
+  .report-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .status-light { width: 8px; height: 8px; border-radius: 50%; }
+  .report-headline { font-size: 14px; font-weight: 500; color: var(--text); }
+  .report-body { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .report-metric { margin-top: 10px; padding: 8px 10px; background: var(--bg3); border-radius: 7px; display: flex; justify-content: space-between; align-items: center; }
+  .report-metric-label { font-size: 11px; color: var(--text3); }
+  .report-metric-value { font-size: 14px; font-weight: 600; font-family: var(--font2); color: var(--text); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 48px 24px; color: var(--text3); }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; margin-bottom: 8px; color: var(--text2); }
+  .empty-sub { font-size: 12px; }
+
+  /* Strategy */
+  .priority-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; display: flex; gap: 12px; }
+  .priority-num { width: 26px; height: 26px; border-radius: 7px; background: rgba(79,127,255,0.12); color: var(--accent2); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--font2); }
+  .priority-action { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .priority-rationale { font-size: 12px; color: var(--text3); line-height: 1.5; }
+  .priority-meta { display: flex; gap: 12px; margin-top: 8px; font-size: 11px; color: var(--text3); }
+  .priority-meta span { color: var(--accent2); }
+
+  .tag { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 5px; background: var(--bg3); color: var(--text3); border: 1px solid var(--border); margin-right: 4px; }
+
+  /* Tab bar */
+  .tabbar { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--bg2); overflow-x: auto; }
+  .tab { padding: 12px 14px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text3); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
+  .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text2); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* Tooltip-like */
+  .kv-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .kv-row:last-child { border-bottom: none; }
+  .kv-key { color: var(--text3); }
+  .kv-val { color: var(--text); font-weight: 500; font-family: var(--font2); }
+
+  .root-cause-item { background: var(--bg3); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; border-left: 3px solid var(--red); }
+  .root-cause-item.medium { border-left-color: var(--amber); }
+  .root-cause-item.low { border-left-color: var(--border2); }
+  .rc-issue { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .rc-evidence { font-size: 12px; color: var(--text3); line-height: 1.5; }
+
+  .segment-bar { height: 6px; border-radius: 3px; background: var(--accent); margin-top: 4px; transition: width 0.6s ease; }
+
+  /* Simulate */
+  .sim-metric { text-align: center; background: var(--bg3); border-radius: 8px; padding: 12px; }
+  .sim-metric-val { font-size: 22px; font-weight: 600; font-family: var(--font2); }
+  .sim-metric-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const API_BASE = 'http://localhost:8000/api/v1';
+
+// ── Icons (inline SVG as components) ──────────────────────────────
+const icons = {
+  overview: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>,
+  sales: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="1,12 5,7 9,9 15,3"/><polyline points="11,3 15,3 15,7"/></svg>,
+  customers: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="12" cy="6" r="2.5"/><path d="M14 14c0-2.2-1.3-3.8-3-4"/></svg>,
+  inventory: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="9" width="12" height="5" rx="1.5"/><rect x="4" y="5" width="8" height="4" rx="1"/><rect x="6" y="2" width="4" height="3" rx="1"/></svg>,
+  marketing: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 10V8c0-5 9-6 9-6v8s-9-1-9-6z"/><rect x="1" y="8" width="2" height="4" rx="1"/><path d="M12 6c1.1 0 2 .9 2 2s-.9 2-2 2"/></svg>,
+  forecast: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>,
+  strategy: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2L14 6v8H2V6z"/><path d="M6 14v-4h4v4"/></svg>,
+  actions: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3,8 6,12 13,4"/></svg>,
+  report: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="1" width="10" height="14" rx="1.5"/><line x1="6" y1="5" x2="10" y2="5"/><line x1="6" y1="8" x2="11" y2="8"/><line x1="6" y1="11" x2="9" y2="11"/></svg>,
+  ask: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1c-3.9 0-7 2.8-7 6.2 0 1.7.8 3.2 2 4.3v3l3.2-1.8c.6.1 1.2.2 1.8.2 3.9 0 7-2.8 7-6.3S11.9 1 8 1z"/><path d="M8 5.5v.5M8 8v2"/></svg>,
+  simulate: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 14V8M8 8l-4 3M8 8l4 3"/><circle cx="8" cy="4" r="2.5"/></svg>,
+};
+
+// ── Metric Card ────────────────────────────────────────────────────
+function MetricCard({ label, value, sub, change, color }) {
+  const changeClass = change && change.startsWith('+') ? 'up' : change && change.startsWith('-') ? 'down' : '';
+  return (
+    <div className="card">
+      <div className="card-title">{label}</div>
+      <div className="card-value" style={color ? {color} : {}}>{value ?? '—'}</div>
+      {change && <div className={`card-change ${changeClass}`} style={{marginTop:4}}>{change}</div>}
+      {sub && <div className="card-sub">{sub}</div>}
+    </div>
+  );
+}
+
+// ── Agent Card ─────────────────────────────────────────────────────
+function AgentCard({ name, role, icon, status, color }) {
+  const badgeMap = { success: 'badge-success', warning: 'badge-warning', critical: 'badge-critical', idle: 'badge-idle', running: 'badge-running' };
+  return (
+    <div className="agent-card">
+      <div className="agent-icon" style={{background: color + '22'}}><span style={{fontSize:18}}>{icon}</span></div>
+      <div><div className="agent-name">{name}</div><div className="agent-role">{role}</div></div>
+      <div className={`agent-status-badge ${badgeMap[status] || 'badge-idle'}`}>{status}</div>
+    </div>
+  );
+}
+
+// ── Chart components ───────────────────────────────────────────────
+function LineChart({ data, labels, color = '#4f7fff', label = 'Revenue', height = 200 }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+  useEffect(() => {
+    if (!ref.current || !data) return;
+    if (chartRef.current) chartRef.current.destroy();
+    chartRef.current = new Chart(ref.current, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label,
+          data,
+          borderColor: color,
+          backgroundColor: color + '15',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: '#181d2c', borderColor: '#ffffff18', borderWidth: 1, titleColor: '#f0f2f8', bodyColor: '#8b92a8', padding: 10 } },
+        scales: {
+          x: { grid: { color: '#ffffff06' }, ticks: { color: '#555e78', font: { size: 10 }, maxTicksLimit: 8 } },
+          y: { grid: { color: '#ffffff08' }, ticks: { color: '#555e78', font: { size: 10 }, callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) } },
+        }
+      }
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [data]);
+  return <div className="chart-wrap" style={{height}}><canvas ref={ref} role="img" aria-label={`${label} chart`}></canvas></div>;
+}
+
+function BarChart({ data, labels, color = '#4f7fff', label = '', height = 200, horizontal = false }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+  useEffect(() => {
+    if (!ref.current || !data) return;
+    if (chartRef.current) chartRef.current.destroy();
+    chartRef.current = new Chart(ref.current, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label, data, backgroundColor: color + 'cc', borderRadius: 4 }]
+      },
+      options: {
+        indexAxis: horizontal ? 'y' : 'x',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#181d2c', borderColor: '#ffffff18', borderWidth: 1, titleColor: '#f0f2f8', bodyColor: '#8b92a8', padding: 10 } },
+        scales: {
+          x: { grid: { color: '#ffffff06' }, ticks: { color: '#555e78', font: { size: 10 } } },
+          y: { grid: { color: '#ffffff08' }, ticks: { color: '#555e78', font: { size: 10 }, callback: horizontal ? undefined : v => '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v) } },
+        }
+      }
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [data]);
+  return <div className="chart-wrap" style={{height: horizontal ? Math.max(height, labels?.length * 36 + 60) : height}}><canvas ref={ref} role="img" aria-label={`${label} bar chart`}></canvas></div>;
+}
+
+function DonutChart({ data, labels, colors, height = 220 }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+  useEffect(() => {
+    if (!ref.current || !data) return;
+    if (chartRef.current) chartRef.current.destroy();
+    chartRef.current = new Chart(ref.current, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#181d2c', borderColor: '#ffffff18', borderWidth: 1, titleColor: '#f0f2f8', bodyColor: '#8b92a8', padding: 10 } },
+      }
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [data]);
+  return <div className="chart-wrap" style={{height}}><canvas ref={ref} role="img" aria-label="Donut chart"></canvas></div>;
+}
+
+// ── Insight List ──────────────────────────────────────────────────
+function InsightList({ insights = [], risks = [], opportunities = [] }) {
+  return (
+    <div>
+      {insights.slice(0,3).map((i,k) => <div key={k} className="insight-item insight">💡 {i}</div>)}
+      {risks.slice(0,2).map((r,k) => <div key={k} className="insight-item risk">⚠ {r}</div>)}
+      {opportunities.slice(0,2).map((o,k) => <div key={k} className="insight-item opportunity">✦ {o}</div>)}
+    </div>
+  );
+}
+
+// ── Pages ──────────────────────────────────────────────────────────
+function OverviewPage({ data, loading, onRunAnalysis }) {
+  if (loading) return <LoadingState stage="Analyzing all agents..." />;
+  if (!data) return (
+    <div className="empty">
+      <div className="empty-icon">🧠</div>
+      <div className="empty-text">No analysis data yet</div>
+      <div className="empty-sub" style={{marginBottom:16}}>Run the full multi-agent analysis to populate the dashboard</div>
+      <button className="btn primary" onClick={onRunAnalysis}>Run Full Analysis</button>
+    </div>
+  );
+
+  const { strategy, agent_results, business_health_score, health_label, total_time_seconds } = data;
+  const sales = agent_results?.sales;
+  const customers = agent_results?.customer;
+  const marketing = agent_results?.marketing;
+  const forecast = agent_results?.forecasting;
+
+  const sm = sales?.computed_metrics || {};
+  const cm = customers?.computed_metrics || {};
+  const mm = marketing?.computed_metrics || {};
+  const fm = forecast?.computed_metrics || {};
+
+  const healthColor = business_health_score >= 70 ? '#22c98b' : business_health_score >= 40 ? '#ffb340' : '#ff5c6a';
+
+  return (
+    <div>
+      {/* KPI row */}
+      <div className="grid-4">
+        <MetricCard label="Total Revenue" value={sm.total_revenue ? '$' + (sm.total_revenue/1000).toFixed(0) + 'k' : '—'} change={sm.mom_growth_pct ? (sm.mom_growth_pct > 0 ? '+' : '') + sm.mom_growth_pct + '% MoM' : null} />
+        <MetricCard label="Profit Margin" value={sm.profit_margin_pct ? sm.profit_margin_pct + '%' : '—'} sub="Last 180 days" />
+        <MetricCard label="Active Customers" value={cm.total_customers || '—'} change={cm.churn_rate_pct ? '⚠ ' + cm.churn_rate_pct + '% churn risk' : null} />
+        <MetricCard label="Marketing ROI" value={mm.overall_roi_pct ? mm.overall_roi_pct + '%' : '—'} sub={'Spend: $' + (mm.total_spend ? (mm.total_spend/1000).toFixed(0) + 'k' : '—')} />
+      </div>
+
+      {/* Health + Strategy */}
+      <div className="section-header"><div className="section-title">Business Health & Strategy</div></div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">Business Health Score</div>
+          <div className="card-value" style={{color: healthColor, fontSize: 40}}>{business_health_score}</div>
+          <div style={{fontSize: 13, color: healthColor, marginBottom: 10, fontWeight: 500}}>{health_label}</div>
+          <div style={{background: 'var(--bg3)', borderRadius: 6, height: 6, overflow: 'hidden'}}>
+            <div style={{height: '100%', width: business_health_score + '%', background: healthColor, borderRadius: 6, transition: 'width 1s ease'}} />
+          </div>
+          <div style={{fontSize: 11, color: 'var(--text3)', marginTop: 8}}>Analysis completed in {total_time_seconds}s</div>
+        </div>
+        <div className="card">
+          <div className="card-title">Executive Summary</div>
+          <div style={{fontSize: 13, color: 'var(--text2)', lineHeight: 1.7}}>{strategy?.executive_summary || '—'}</div>
+          <div style={{marginTop: 14}}>
+            {(strategy?.quick_wins || []).slice(0, 2).map((win, i) => (
+              <div key={i} className="insight-item opportunity" style={{marginBottom: 5}}>✦ {win}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Root Causes */}
+      {strategy?.root_causes?.length > 0 && (
+        <>
+          <div className="section-header"><div className="section-title">Root Cause Analysis</div></div>
+          <div className="grid-2">
+            {strategy.root_causes.slice(0, 4).map((rc, i) => (
+              <div key={i} className={`root-cause-item ${rc.severity}`}>
+                <div className="rc-issue">{rc.issue}</div>
+                <div className="rc-evidence">{rc.evidence}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Agent Status */}
+      <div className="section-header"><div className="section-title">Agent Status</div></div>
+      <div className="grid-3">
+        {[
+          { name: 'SalesBot', role: 'Sales Analytics', icon: '📊', color: '#4f7fff', key: 'sales' },
+          { name: 'CustBot', role: 'Customer Intelligence', icon: '👥', color: '#22c98b', key: 'customer' },
+          { name: 'StockBot', role: 'Inventory & Supply Chain', icon: '📦', color: '#ffb340', key: 'inventory' },
+          { name: 'MarketBot', role: 'Marketing Analytics', icon: '📢', color: '#a78bfa', key: 'marketing' },
+          { name: 'ForecastBot', role: 'Predictive Analytics', icon: '📈', color: '#2dd4bf', key: 'forecasting' },
+          { name: 'StrategyBot', role: 'Chief Strategy Officer', icon: '🧠', color: '#ff5c6a', key: 'strategy' },
+        ].map(agent => (
+          <AgentCard
+            key={agent.key}
+            name={agent.name}
+            role={agent.role}
+            icon={agent.icon}
+            color={agent.color}
+            status={agent_results?.[agent.key]?.status || (agent.key === 'strategy' ? strategy?.health_label?.toLowerCase() || 'success' : 'idle')}
+          />
+        ))}
+      </div>
+
+      {/* Cross-domain insights */}
+      {strategy?.cross_domain_insights?.length > 0 && (
+        <>
+          <div className="section-header"><div className="section-title">Cross-Domain Intelligence</div></div>
+          <div className="card">
+            {strategy.cross_domain_insights.map((insight, i) => (
+              <div key={i} className="insight-item insight" style={{marginBottom: 6}}>💡 {insight}</div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SalesPage({ data }) {
+  if (!data?.agent_results?.sales) return <EmptyAgentState name="Sales" />;
+  const res = data.agent_results.sales;
+  const m = res.computed_metrics || {};
+
+  // Prepare chart data from weekly_revenue
+  const weeklyEntries = Object.entries(m.weekly_revenue || {});
+  const weekLabels = weeklyEntries.map(([k]) => 'W' + k);
+  const weekData = weeklyEntries.map(([,v]) => v);
+
+  const productNames = Object.keys(m.top_products || {}).map(n => n.split(' ').slice(0,1).join(' '));
+  const productRevs = Object.values(m.top_products || {});
+
+  const regionNames = Object.keys(m.regional_revenue || {});
+  const regionRevs = Object.values(m.regional_revenue || {});
+  const regionColors = ['#4f7fff', '#22c98b', '#ffb340', '#a78bfa', '#2dd4bf'];
+
+  return (
+    <div>
+      <div className="grid-4">
+        <MetricCard label="Total Revenue" value={'$' + ((m.total_revenue||0)/1000).toFixed(0) + 'k'} change={(m.mom_growth_pct > 0 ? '+' : '') + (m.mom_growth_pct||0) + '% MoM'} />
+        <MetricCard label="Total Profit" value={'$' + ((m.total_profit||0)/1000).toFixed(0) + 'k'} />
+        <MetricCard label="Profit Margin" value={(m.profit_margin_pct||0) + '%'} />
+        <MetricCard label="Units Sold" value={(m.total_units||0).toLocaleString()} />
+      </div>
+
+      <div className="section-header"><div className="section-title">Revenue Trend (Weekly)</div></div>
+      <div className="card"><LineChart data={weekData} labels={weekLabels} label="Weekly Revenue" height={200} /></div>
+
+      <div className="section-header"><div className="section-title">Performance Breakdown</div></div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">Top Products by Revenue</div>
+          <BarChart data={productRevs} labels={productNames} color="#4f7fff" label="Revenue" height={180} horizontal />
+        </div>
+        <div className="card">
+          <div className="card-title">Revenue by Region</div>
+          <DonutChart data={regionRevs} labels={regionNames} colors={regionColors} height={200} />
+          <div style={{display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12}}>
+            {regionNames.map((r, i) => (
+              <span key={i} style={{fontSize: 11, color: 'var(--text3)', display: 'flex', alignItems: 'center', gap: 5}}>
+                <span style={{width: 8, height: 8, borderRadius: 2, background: regionColors[i], display: 'inline-block'}} /> {r}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="section-header"><div className="section-title">Sales Intelligence</div></div>
+      <div className="card"><InsightList insights={res.insights} risks={res.risks} opportunities={res.opportunities} /></div>
+    </div>
+  );
+}
+
+function CustomerPage({ data }) {
+  if (!data?.agent_results?.customer) return <EmptyAgentState name="Customer" />;
+  const res = data.agent_results.customer;
+  const m = res.computed_metrics || {};
+
+  const segs = m.segment_breakdown || {};
+  const segNames = Object.keys(segs);
+  const segLTVs = segNames.map(s => parseFloat(segs[s]?.avg_ltv || 0).toFixed(0));
+  const segColors = ['#4f7fff', '#22c98b', '#ffb340', '#a78bfa'];
+
+  const channelNames = Object.keys(m.channel_distribution || {});
+  const channelVals = channelNames.map(k => m.channel_distribution[k]);
+
+  return (
+    <div>
+      <div className="grid-4">
+        <MetricCard label="Total Customers" value={m.total_customers || '—'} />
+        <MetricCard label="Churn Rate" value={(m.churn_rate_pct || 0) + '%'} change={m.high_risk_customers ? '⚠ ' + m.high_risk_customers + ' high risk' : null} />
+        <MetricCard label="Avg Lifetime Value" value={'$' + ((m.avg_lifetime_value||0)).toFixed(0)} />
+        <MetricCard label="Net Promoter Score" value={(m.net_promoter_score||0).toFixed(0)} />
+      </div>
+
+      <div className="section-header"><div className="section-title">Segment Analysis</div></div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">Avg LTV by Segment</div>
+          <BarChart data={segLTVs} labels={segNames} color="#22c98b" label="Avg LTV" height={200} />
+        </div>
+        <div className="card">
+          <div className="card-title">Acquisition Channel Distribution</div>
+          <DonutChart data={channelVals} labels={channelNames} colors={['#4f7fff','#22c98b','#ffb340','#a78bfa','#2dd4bf','#ff5c6a']} height={200} />
+        </div>
+      </div>
+
+      <div className="section-header"><div className="section-title">Segment Details</div></div>
+      <div className="card">
+        {segNames.map((seg, i) => {
+          const s = segs[seg];
+          const maxLTV = Math.max(...segLTVs.map(Number));
+          return (
+            <div key={i} style={{marginBottom: 14}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: 3}}>
+                <span style={{fontSize: 13, fontWeight: 500, color: 'var(--text)'}}>{seg}</span>
+                <span style={{fontSize: 12, color: 'var(--text3)'}}>{s?.count || 0} customers · Avg LTV: ${parseFloat(s?.avg_ltv||0).toFixed(0)} · Churn Risk: {(parseFloat(s?.avg_churn_risk||0)*100).toFixed(0)}%</span>
+              </div>
+              <div style={{background: 'var(--bg3)', borderRadius: 4, height: 5, overflow: 'hidden'}}>
+                <div style={{height: '100%', width: (parseFloat(segLTVs[i])/maxLTV*100) + '%', background: segColors[i], borderRadius: 4}} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="section-header"><div className="section-title">Customer Intelligence</div></div>
+      <div className="card"><InsightList insights={res.insights} risks={res.risks} opportunities={res.opportunities} /></div>
+    </div>
+  );
+}
+
+function InventoryPage({ data }) {
+  if (!data?.agent_results?.inventory) return <EmptyAgentState name="Inventory" />;
+  const res = data.agent_results.inventory;
+  const m = res.computed_metrics || {};
+
+  const statusColors = { Critical: '#ff5c6a', Low: '#ffb340', Optimal: '#22c98b', Overstock: '#a78bfa' };
+  const items = m.status_breakdown || [];
+
+  return (
+    <div>
+      <div className="grid-4">
+        <MetricCard label="Total Stock Value" value={'$' + ((m.total_stock_value||0)/1000).toFixed(0) + 'k'} />
+        <MetricCard label="Monthly Carrying Cost" value={'$' + ((m.monthly_carrying_cost||0)/1000).toFixed(1) + 'k'} />
+        <MetricCard label="Critical Items" value={m.critical_count || 0} change={m.critical_count > 0 ? '⚠ Needs reorder' : null} color={m.critical_count > 0 ? '#ff5c6a' : undefined} />
+        <MetricCard label="Stockout Risk" value={m.stockout_risk_count || 0} sub="Items < 7 days stock" />
+      </div>
+
+      <div className="section-header"><div className="section-title">Status Overview</div></div>
+      <div className="grid-4">
+        {['Critical','Low','Optimal','Overstock'].map(s => (
+          <div key={s} className="card-sm" style={{borderLeft: '3px solid ' + statusColors[s]}}>
+            <div className="card-title">{s}</div>
+            <div className="card-value" style={{color: statusColors[s], fontSize: 28}}>{m[s.toLowerCase() + '_count'] || 0}</div>
+            <div className="card-sub">products</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="section-header"><div className="section-title">Product Stock Levels</div></div>
+      <div className="card">
+        <table style={{width: '100%', borderCollapse: 'collapse', fontSize: 12}}>
+          <thead>
+            <tr style={{borderBottom: '1px solid var(--border)'}}>
+              {['Product','Status','Current Stock','Days Left','Daily Avg','Stock Value'].map(h => (
+                <th key={h} style={{textAlign: 'left', padding: '8px 10px', color: 'var(--text3)', fontWeight: 400}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, i) => (
+              <tr key={i} style={{borderBottom: '1px solid var(--border)'}}>
+                <td style={{padding: '10px 10px', color: 'var(--text)', fontWeight: 500}}>{item.product_name}</td>
+                <td style={{padding: '10px 10px'}}><span className={`agent-status-badge badge-${item.status === 'Critical' ? 'critical' : item.status === 'Low' ? 'warning' : item.status === 'Optimal' ? 'success' : 'idle'}`}>{item.status}</span></td>
+                <td style={{padding: '10px 10px', color: 'var(--text2)', fontFamily: 'var(--font2)'}}>{(item.current_stock||0).toLocaleString()}</td>
+                <td style={{padding: '10px 10px', color: item.days_of_stock_remaining < 7 ? 'var(--red)' : 'var(--text2)', fontFamily: 'var(--font2)'}}>{item.days_of_stock_remaining}d</td>
+                <td style={{padding: '10px 10px', color: 'var(--text3)'}}>{item.daily_sales_avg || '—'}/day</td>
+                <td style={{padding: '10px 10px', color: 'var(--text2)', fontFamily: 'var(--font2)'}}>${(item.stock_value||0).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="section-header"><div className="section-title">Inventory Intelligence</div></div>
+      <div className="card"><InsightList insights={res.insights} risks={res.risks} opportunities={res.opportunities} /></div>
+    </div>
+  );
+}
+
+function MarketingPage({ data }) {
+  if (!data?.agent_results?.marketing) return <EmptyAgentState name="Marketing" />;
+  const res = data.agent_results.marketing;
+  const m = res.computed_metrics || {};
+
+  const channelKeys = Object.keys(m.by_channel || {});
+  const channelROIs = channelKeys.map(k => parseFloat(m.by_channel[k].avg_roi||0).toFixed(1));
+  const channelSpend = channelKeys.map(k => parseFloat(m.by_channel[k].total_spend||0).toFixed(0));
+
+  const campKeys = Object.keys(m.by_campaign || {});
+  const campROIs = campKeys.map(k => parseFloat(m.by_campaign[k].avg_roi||0).toFixed(1));
+
+  return (
+    <div>
+      <div className="grid-4">
+        <MetricCard label="Total Ad Spend" value={'$' + ((m.total_spend||0)/1000).toFixed(1) + 'k'} />
+        <MetricCard label="Revenue Generated" value={'$' + ((m.total_revenue||0)/1000).toFixed(1) + 'k'} />
+        <MetricCard label="Overall ROI" value={(m.overall_roi_pct||0) + '%'} change={m.overall_roi_pct > 100 ? '✓ Profitable' : '⚠ Below target'} />
+        <MetricCard label="Avg CPA" value={'$' + (m.avg_cpa||0).toFixed(2)} sub="Cost per acquisition" />
+      </div>
+
+      <div className="section-header"><div className="section-title">Channel Performance</div></div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">ROI by Channel</div>
+          <BarChart data={channelROIs} labels={channelKeys} color="#a78bfa" label="ROI %" height={200} horizontal />
+        </div>
+        <div className="card">
+          <div className="card-title">Spend Distribution</div>
+          <DonutChart data={channelSpend} labels={channelKeys} colors={['#4f7fff','#22c98b','#ffb340','#a78bfa','#2dd4bf','#ff5c6a']} height={200} />
+        </div>
+      </div>
+
+      <div className="section-header"><div className="section-title">Campaign ROI Ranking</div></div>
+      <div className="card">
+        <BarChart data={campROIs} labels={campKeys.map(k => k.split(' ').slice(0,2).join(' '))} color="#2dd4bf" label="Avg ROI %" height={200} />
+      </div>
+
+      <div className="section-header"><div className="section-title">Best: {m.best_campaign} · Worst: {m.worst_campaign}</div></div>
+      <div className="card"><InsightList insights={res.insights} risks={res.risks} opportunities={res.opportunities} /></div>
+    </div>
+  );
+}
+
+function ForecastPage({ data }) {
+  if (!data?.agent_results?.forecasting) return <EmptyAgentState name="Forecasting" />;
+  const res = data.agent_results.forecasting;
+  const m = res.computed_metrics || {};
+  const rev = m.revenue_forecast || {};
+  const churn = m.churn_prediction || {};
+
+  // Monthly history chart
+  const monthKeys = Object.keys(m.monthly_history || {}).slice(-6);
+  const monthRevs = monthKeys.map(k => m.monthly_history[k]);
+
+  // Forecast daily (sample last 14 days)
+  const forecastDays = (rev.daily_forecast || []).slice(0, 14);
+  const forecastLabels = forecastDays.map(d => d.date?.slice(5));
+  const forecastVals = forecastDays.map(d => d.predicted_revenue);
+
+  // Product demand
+  const demandEntries = Object.entries(m.product_demand_forecast || {}).slice(0, 5);
+  const demandLabels = demandEntries.map(([k]) => k.split(' ').slice(0,1).join(' '));
+  const demandVals = demandEntries.map(([,v]) => v);
+
+  return (
+    <div>
+      <div className="grid-4">
+        <MetricCard label="30-Day Forecast" value={'$' + ((rev.monthly_forecast_total||0)/1000).toFixed(1) + 'k'} change={(rev.projected_growth_pct > 0 ? '+' : '') + (rev.projected_growth_pct||0) + '% projected'} />
+        <MetricCard label="Last Month Actual" value={'$' + ((rev.last_month_actual||0)/1000).toFixed(1) + 'k'} />
+        <MetricCard label="Predicted Churn" value={(churn.predicted_churn_rate_pct||0) + '%'} change="Next 30 days" />
+        <MetricCard label="Monthly Revenue Growth" value={(m.avg_monthly_revenue_growth_pct||0).toFixed(1) + '%'} sub="Average trend" />
+      </div>
+
+      <div className="section-header"><div className="section-title">14-Day Revenue Forecast</div></div>
+      <div className="card"><LineChart data={forecastVals} labels={forecastLabels} color="#2dd4bf" label="Predicted Revenue" height={200} /></div>
+
+      <div className="section-header"><div className="section-title">Historical Monthly Revenue</div></div>
+      <div className="card"><BarChart data={monthRevs} labels={monthKeys.map(k => k.split('-').slice(1).join(''))} color="#4f7fff" label="Monthly Revenue" height={180} /></div>
+
+      <div className="section-header"><div className="section-title">30-Day Product Demand Forecast (Units)</div></div>
+      <div className="card"><BarChart data={demandVals} labels={demandLabels} color="#a78bfa" label="Units" height={180} horizontal /></div>
+
+      <div className="section-header"><div className="section-title">Forecast Intelligence</div></div>
+      <div className="card"><InsightList insights={res.insights} risks={res.risks} opportunities={res.opportunities} /></div>
+    </div>
+  );
+}
+
+function StrategyPage({ data }) {
+  if (!data?.strategy) return <EmptyAgentState name="Strategy" />;
+  const s = data.strategy;
+
+  return (
+    <div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">Business Health</div>
+          <div className="card-value" style={{fontSize:36, color: s.business_health_score >= 70 ? '#22c98b' : s.business_health_score >= 40 ? '#ffb340' : '#ff5c6a'}}>{s.business_health_score}/100</div>
+          <div style={{fontSize:14, fontWeight:500, marginTop:4, color: 'var(--text2)'}}>{s.health_label}</div>
+        </div>
+        <div className="card">
+          <div className="card-title">Executive Summary</div>
+          <div style={{fontSize: 13, color: 'var(--text2)', lineHeight: 1.7}}>{s.executive_summary}</div>
+        </div>
+      </div>
+
+      <div className="section-header"><div className="section-title">Root Causes</div></div>
+      {(s.root_causes || []).map((rc, i) => (
+        <div key={i} className={`root-cause-item ${rc.severity}`}>
+          <div className="rc-issue">{rc.issue}</div>
+          <div className="rc-evidence">{rc.evidence}</div>
+          <span className="tag" style={{marginTop: 8, display: 'inline-block'}}>{rc.severity} severity</span>
+        </div>
+      ))}
+
+      <div className="section-header"><div className="section-title">Strategic Priorities</div></div>
+      {(s.strategic_priorities || []).map((p, i) => (
+        <div key={i} className="priority-card">
+          <div className="priority-num">{p.priority}</div>
+          <div style={{flex:1}}>
+            <div className="priority-action">{p.action}</div>
+            <div className="priority-rationale">{p.rationale}</div>
+            <div className="priority-meta">
+              <span>Timeline: <span>{p.timeline}</span></span>
+              <span>Outcome: <span>{p.expected_outcome}</span></span>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {(s.agent_conflicts || []).length > 0 && (
+        <>
+          <div className="section-header"><div className="section-title">Agent Conflicts & Resolutions</div></div>
+          {s.agent_conflicts.map((c, i) => (
+            <div key={i} className="card" style={{marginBottom: 10, borderLeft: '3px solid var(--amber)'}}>
+              <div style={{fontSize: 13, fontWeight: 500, marginBottom: 6}}>{c.conflict}</div>
+              <div style={{fontSize: 12, color: 'var(--text3)', marginBottom: 6}}>Agents: {(c.agents_involved || []).join(', ')}</div>
+              <div className="insight-item opportunity">✦ Resolution: {c.resolution}</div>
+            </div>
+          ))}
+        </>
+      )}
+
+      <div className="section-header"><div className="section-title">Quick Wins & Risks</div></div>
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-title">Quick Wins (This Week)</div>
+          {(s.quick_wins || []).map((w, i) => <div key={i} className="insight-item opportunity" style={{marginBottom:5}}>✦ {w}</div>)}
+        </div>
+        <div className="card">
+          <div className="card-title">Risks to Watch</div>
+          {(s.risks_to_watch || []).map((r, i) => <div key={i} className="insight-item risk" style={{marginBottom:5}}>⚠ {r}</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionsPage({ data }) {
+  if (!data?.actions) return <EmptyAgentState name="Actions" />;
+  const a = data.actions;
+  const sim = a.simulation_results?.if_all_actions_executed || {};
+
+  const priorityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+  const sorted = [...(a.actions || [])].sort((x, y) => (priorityOrder[x.priority] || 99) - (priorityOrder[y.priority] || 99));
+
+  return (
+    <div>
+      {Object.keys(sim).length > 0 && (
+        <>
+          <div className="section-header"><div className="section-title">Simulation: If All Actions Executed</div></div>
+          <div className="grid-4">
+            {sim.revenue_impact_pct !== undefined && <MetricCard label="Revenue Impact" value={(sim.revenue_impact_pct > 0 ? '+' : '') + sim.revenue_impact_pct + '%'} color="#22c98b" />}
+            {sim.churn_reduction_pct !== undefined && <MetricCard label="Churn Reduction" value={'-' + sim.churn_reduction_pct + '%'} color="#22c98b" />}
+            {sim.margin_improvement_pct !== undefined && <MetricCard label="Margin Improvement" value={(sim.margin_improvement_pct > 0 ? '+' : '') + sim.margin_improvement_pct + '%'} color="#22c98b" />}
+            {sim.estimated_monthly_gain && <MetricCard label="Monthly Gain Est." value={sim.estimated_monthly_gain} color="#22c98b" />}
+          </div>
+        </>
+      )}
+
+      <div className="section-header">
+        <div className="section-title">Action Plan ({sorted.length} actions)</div>
+      </div>
+      {sorted.map((action, i) => (
+        <div key={i} className="action-item">
+          <div className="action-header">
+            <span className="action-id">{action.id}</span>
+            <div className="action-text">{action.action}</div>
+            <span className={`priority-badge p-${(action.priority||'').toLowerCase()}`}>{action.priority}</span>
+          </div>
+          <div className="action-details">{action.details}</div>
+          <div className="action-meta">
+            <div className="action-meta-item">Impact: <span>{action.expected_impact}</span></div>
+            <div className="action-meta-item">Effort: <span>{action.effort}</span></div>
+            <div className="action-meta-item">Timeline: <span>{action.timeline}</span></div>
+            <div className="action-meta-item">Owner: <span>{action.owner}</span></div>
+            <div className="action-meta-item">KPI: <span>{action.kpi}</span></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReportPage({ data }) {
+  if (!data?.report) return <EmptyAgentState name="Report" />;
+  const r = data.report;
+  const statusColors = { green: '#22c98b', yellow: '#ffb340', red: '#ff5c6a' };
+
+  return (
+    <div>
+      <div className="card" style={{marginBottom: 20}}>
+        <div className="card-title">Executive Summary</div>
+        <div style={{fontSize: 14, color: 'var(--text2)', lineHeight: 1.7}}>{r.executive_summary}</div>
+        <div style={{marginTop: 12, fontSize: 11, color: 'var(--text3)'}}>Generated: {new Date(r.generated_at).toLocaleString()}</div>
+      </div>
+
+      <div className="section-header"><div className="section-title">Report Sections</div></div>
+      {(r.sections || []).map((sec, i) => (
+        <div key={i} className="report-section">
+          <div className="report-section-header">
+            <div className="status-light" style={{background: statusColors[sec.status] || 'var(--text3)'}} />
+            <div style={{fontSize: 13, fontWeight: 500, color: 'var(--text)', flex: 1}}>{sec.title}</div>
+            <span style={{fontSize: 12, color: statusColors[sec.status] || 'var(--text3)', fontWeight: 500}}>{sec.headline}</span>
+          </div>
+          <div className="report-body">{sec.body}</div>
+          {sec.metric && (
+            <div className="report-metric">
+              <span className="report-metric-label">{sec.metric.label}</span>
+              <span className="report-metric-value">{sec.metric.value}</span>
+            </div>
+          )}
+        </div>
+      ))}
+
+      <div className="section-header"><div className="section-title">Action Items</div></div>
+      {(r.action_items || []).map((a, i) => (
+        <div key={i} className="action-item">
+          <div className="action-header">
+            <div className="action-text">{a.action}</div>
+            <span className={`priority-badge p-${(a.priority||'').toLowerCase()}`}>{a.priority}</span>
+          </div>
+          <div className="action-meta">
+            <div className="action-meta-item">Owner: <span>{a.owner}</span></div>
+            <div className="action-meta-item">Deadline: <span>{a.deadline}</span></div>
+          </div>
+        </div>
+      ))}
+
+      {r.bottom_line && (
+        <>
+          <div className="section-header"><div className="section-title">Bottom Line</div></div>
+          <div className="card" style={{borderLeft: '3px solid var(--accent)'}}>
+            <div style={{fontSize: 14, fontWeight: 500, color: 'var(--text)', lineHeight: 1.6}}>{r.bottom_line}</div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function AskAIPage({ onAsk, answer, loading }) {
+  const [question, setQuestion] = useState('');
+  const presets = [
+    'Why did profit drop this month?',
+    'Which customer segment should we focus on?',
+    'What products should we discount?',
+    'Where is our marketing spend wasted?',
+    'What is the biggest risk to revenue?',
+  ];
+
+  return (
+    <div>
+      <div className="card" style={{marginBottom: 20}}>
+        <div className="card-title" style={{marginBottom: 12}}>Ask the Business AI</div>
+        <textarea
+          className="ask-ai-input"
+          rows={3}
+          placeholder="Ask any business question... e.g. 'Why did our churn rate increase?' or 'What should we prioritize this quarter?'"
+          value={question}
+          onChange={e => setQuestion(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (question.trim()) { onAsk(question); setQuestion(''); } } }}
+        />
+        <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: 10}}>
+          <button className="btn primary" onClick={() => { if (question.trim()) { onAsk(question); setQuestion(''); } }} disabled={loading || !question.trim()}>
+            {loading ? 'Thinking...' : 'Ask →'}
+          </button>
+        </div>
+      </div>
+
+      <div className="section-header"><div className="section-title">Quick Questions</div></div>
+      <div style={{display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20}}>
+        {presets.map((p, i) => (
+          <button key={i} className="btn" onClick={() => onAsk(p)} style={{fontSize: 12}}>
+            {p}
+          </button>
+        ))}
+      </div>
+
+      {loading && <div style={{textAlign: 'center', padding: 24, color: 'var(--text3)'}}>🧠 AI is analyzing your question...</div>}
+
+      {answer && (
+        <div className="answer-card">
+          <div className="answer-label">Answer</div>
+          <div className="answer-text">{answer.answer}</div>
+          {answer.supporting_data?.length > 0 && (
+            <div style={{marginTop: 10}}>
+              {answer.supporting_data.map((d, i) => <div key={i} className="insight-item insight" style={{marginBottom: 4}}>📊 {d}</div>)}
+            </div>
+          )}
+          {answer.recommendation && (
+            <div className="answer-rec">
+              <strong style={{color: 'var(--accent2)'}}>Recommendation:</strong> {answer.recommendation}
+            </div>
+          )}
+          <div style={{marginTop: 8, fontSize: 11, color: 'var(--text3)'}}>Confidence: {answer.confidence}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SimulatePage({ onSimulate, result, loading }) {
+  const [scenario, setScenario] = useState('');
+  const presets = [
+    'What if we increase prices by 10%?',
+    'What if we double our marketing budget?',
+    'What if we launch a loyalty rewards program?',
+    'What if we discontinue the lowest-selling product?',
+    'What if we expand to 2 new regions?',
+  ];
+
+  return (
+    <div>
+      <div className="card" style={{marginBottom: 20}}>
+        <div className="card-title" style={{marginBottom: 12}}>Scenario Simulator</div>
+        <div style={{fontSize: 12, color: 'var(--text3)', marginBottom: 12}}>Describe a business change and AI will estimate its impact on revenue, churn, and margins.</div>
+        <textarea
+          className="ask-ai-input"
+          rows={3}
+          placeholder="Describe a scenario... e.g. 'What if we reduce prices by 15% to drive volume?'"
+          value={scenario}
+          onChange={e => setScenario(e.target.value)}
+        />
+        <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: 10}}>
+          <button className="btn primary" onClick={() => { if (scenario.trim()) onSimulate(scenario); }} disabled={loading || !scenario.trim()}>
+            {loading ? 'Simulating...' : 'Simulate →'}
+          </button>
+        </div>
+      </div>
+
+      <div style={{display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20}}>
+        {presets.map((p, i) => (
+          <button key={i} className="btn" onClick={() => { setScenario(p); onSimulate(p); }} style={{fontSize: 12}}>{p}</button>
+        ))}
+      </div>
+
+      {loading && <div style={{textAlign: 'center', padding: 24, color: 'var(--text3)'}}>⚡ Running simulation...</div>}
+
+      {result && (
+        <div>
+          <div className="section-header"><div className="section-title">Simulation: "{result.scenario}"</div></div>
+          <div className="grid-2" style={{marginBottom: 14}}>
+            {Object.entries(result.estimated_impact || {}).map(([k, v]) => (
+              <div key={k} className="card-sm" style={{textAlign:'center'}}>
+                <div className="card-title" style={{textAlign:'center'}}>{k.replace(/_/g,' ')}</div>
+                <div className="card-value" style={{fontSize:22, textAlign:'center', color: String(v).includes('-') ? '#22c98b' : String(v).includes('+') || (parseFloat(v) > 0) ? '#22c98b' : 'var(--text)'}}>{String(v)}</div>
+              </div>
+            ))}
+          </div>
+          <div className="card" style={{marginBottom: 10}}>
+            <div className="card-title">AI Recommendation</div>
+            <div style={{fontSize: 13, color: 'var(--text2)', lineHeight: 1.6}}>{result.recommendation}</div>
+            <div style={{fontSize: 11, color: 'var(--text3)', marginTop: 8}}>Confidence: {result.confidence}</div>
+          </div>
+          <div className="grid-2">
+            <div className="card">
+              <div className="card-title">Risks</div>
+              {(result.risks || []).map((r, i) => <div key={i} className="insight-item risk" style={{marginBottom:4}}>⚠ {r}</div>)}
+            </div>
+            <div className="card">
+              <div className="card-title">Opportunities</div>
+              {(result.opportunities || []).map((o, i) => <div key={i} className="insight-item opportunity" style={{marginBottom:4}}>✦ {o}</div>)}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LoadingState({ stage }) {
+  const [dot, setDot] = useState('');
+  useEffect(() => {
+    const t = setInterval(() => setDot(d => d.length >= 3 ? '' : d + '.'), 400);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="loader">
+      <div className="spinner" />
+      <div className="loader-text">Running multi-agent analysis</div>
+      <div className="loader-stage">{stage}{dot}</div>
+    </div>
+  );
+}
+
+function EmptyAgentState({ name }) {
+  return (
+    <div className="empty">
+      <div className="empty-icon">🤖</div>
+      <div className="empty-text">{name} agent has no data</div>
+      <div className="empty-sub">Run a full analysis from the Overview page to populate this section.</div>
+    </div>
+  );
+}
+
+// ── Main App ────────────────────────────────────────────────────────
+function App() {
+  const [page, setPage] = useState('overview');
+  const [analysisData, setAnalysisData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [askAnswer, setAskAnswer] = useState(null);
+  const [askLoading, setAskLoading] = useState(false);
+  const [simResult, setSimResult] = useState(null);
+  const [simLoading, setSimLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState('Initializing agents');
+  const [apiConnected, setApiConnected] = useState(null);
+
+  useEffect(() => {
+    fetch(API_BASE + '/health').then(r => r.json()).then(() => setApiConnected(true)).catch(() => setApiConnected(false));
+  }, []);
+
+  const runAnalysis = useCallback(async () => {
+    setLoading(true);
+    const stages = ['Initializing agents', 'Running Sales Agent', 'Running Customer Agent', 'Running Inventory Agent', 'Running Marketing Agent', 'Running Forecasting Agent', 'Synthesizing Strategy', 'Generating Report', 'Creating Action Plan'];
+    let i = 0;
+    const interval = setInterval(() => {
+      setLoadingStage(stages[Math.min(i++, stages.length - 1)]);
+    }, 3500);
+
+    try {
+      const res = await fetch(API_BASE + '/analyze/full', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const json = await res.json();
+      setAnalysisData(json.data);
+    } catch (e) {
+      console.error('Analysis failed:', e);
+    } finally {
+      clearInterval(interval);
+      setLoading(false);
+    }
+  }, []);
+
+  const askQuestion = useCallback(async (question) => {
+    setAskLoading(true);
+    setAskAnswer(null);
+    try {
+      const res = await fetch(API_BASE + '/question', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question }) });
+      const json = await res.json();
+      setAskAnswer(json.answer);
+    } catch (e) { setAskAnswer({ answer: 'Failed to connect to backend. Make sure the server is running.', confidence: 'low' }); }
+    finally { setAskLoading(false); }
+  }, []);
+
+  const simulate = useCallback(async (scenario) => {
+    setSimLoading(true);
+    setSimResult(null);
+    try {
+      const res = await fetch(API_BASE + '/simulate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scenario }) });
+      const json = await res.json();
+      setSimResult({ ...json.result, scenario });
+    } catch (e) { setSimResult({ scenario, recommendation: 'Backend not connected.', estimated_impact: {} }); }
+    finally { setSimLoading(false); }
+  }, []);
+
+  const healthScore = analysisData?.business_health_score || 0;
+  const healthColor = healthScore >= 70 ? '#22c98b' : healthScore >= 40 ? '#ffb340' : '#ff5c6a';
+
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: icons.overview },
+    { id: 'sales', label: 'Sales', icon: icons.sales },
+    { id: 'customers', label: 'Customers', icon: icons.customers },
+    { id: 'inventory', label: 'Inventory', icon: icons.inventory },
+    { id: 'marketing', label: 'Marketing', icon: icons.marketing },
+    { id: 'forecast', label: 'Forecasting', icon: icons.forecast },
+    { id: 'strategy', label: 'Strategy', icon: icons.strategy },
+    { id: 'actions', label: 'Actions', icon: icons.actions },
+    { id: 'report', label: 'Report', icon: icons.report },
+    { id: 'ask', label: 'Ask AI', icon: icons.ask },
+    { id: 'simulate', label: 'Simulate', icon: icons.simulate },
+  ];
+
+  const pageTitle = navItems.find(n => n.id === page)?.label || 'Dashboard';
+
+  return (
+    <>
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="sidebar-logo">
+          <div className="logo-mark">Biz<span>Mind</span></div>
+          <div className="logo-sub">AI Business Intelligence</div>
+        </div>
+        <nav className="nav">
+          <div className="nav-section">Dashboard</div>
+          {navItems.slice(0, 1).map(item => (
+            <div key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => setPage(item.id)}>
+              <span className="icon">{item.icon}</span>{item.label}
+            </div>
+          ))}
+          <div className="nav-section" style={{marginTop: 8}}>Agents</div>
+          {navItems.slice(1, 9).map(item => (
+            <div key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => setPage(item.id)}>
+              <span className="icon">{item.icon}</span>{item.label}
+            </div>
+          ))}
+          <div className="nav-section" style={{marginTop: 8}}>AI Tools</div>
+          {navItems.slice(9).map(item => (
+            <div key={item.id} className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => setPage(item.id)}>
+              <span className="icon">{item.icon}</span>{item.label}
+            </div>
+          ))}
+        </nav>
+        {analysisData && (
+          <div className="sidebar-bottom">
+            <div className="health-pill">
+              <div className="health-label">Business Health</div>
+              <div className="health-score" style={{color: healthColor}}>{healthScore}</div>
+              <div className="health-bar-wrap">
+                <div className="health-bar" style={{width: healthScore + '%', background: healthColor}} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main */}
+      <div className="main">
+        <div className="topbar">
+          <div style={{display:'flex', alignItems:'center', gap:10}}>
+            <div className="page-title">{pageTitle}</div>
+            {apiConnected === false && <span style={{fontSize:11, color:'var(--red)', background:'rgba(255,92,106,0.1)', padding:'2px 8px', borderRadius:5}}>⚠ Backend offline</span>}
+            {apiConnected === true && !analysisData && <span style={{fontSize:11, color:'var(--text3)'}}>No analysis run yet</span>}
+          </div>
+          <div className="topbar-actions">
+            {analysisData && <span style={{fontSize:11, color:'var(--text3)'}}>Last run: {Math.round(analysisData.total_time_seconds)}s</span>}
+            <button className="btn primary" onClick={runAnalysis} disabled={loading}>
+              {loading ? '⏳ Analyzing...' : '▶ Run Analysis'}
+            </button>
+          </div>
+        </div>
+
+        <div className="content">
+          {loading ? (
+            <LoadingState stage={loadingStage} />
+          ) : (
+            <>
+              {page === 'overview' && <OverviewPage data={analysisData} loading={false} onRunAnalysis={runAnalysis} />}
+              {page === 'sales' && <SalesPage data={analysisData} />}
+              {page === 'customers' && <CustomerPage data={analysisData} />}
+              {page === 'inventory' && <InventoryPage data={analysisData} />}
+              {page === 'marketing' && <MarketingPage data={analysisData} />}
+              {page === 'forecast' && <ForecastPage data={analysisData} />}
+              {page === 'strategy' && <StrategyPage data={analysisData} />}
+              {page === 'actions' && <ActionsPage data={analysisData} />}
+              {page === 'report' && <ReportPage data={analysisData} />}
+              {page === 'ask' && <AskAIPage onAsk={askQuestion} answer={askAnswer} loading={askLoading} />}
+              {page === 'simulate' && <SimulatePage onSimulate={simulate} result={simResult} loading={simLoading} />}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
